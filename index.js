@@ -56,8 +56,10 @@ function baseQuestions() {
           addEmployee();
           break;
         case "Remove Employee":
+          removeEmployee();
           break;
-        case "Update Employee":
+        case "Update Employee role":
+          UpdateEmployeeRole();
           break;
         case "Add Role":
           addRole();
@@ -307,8 +309,135 @@ function viewDepartmentExpenses() {
 }
 // Update-------------
 // employee roles
+function UpdateEmployeeRole() {
+  const employees = [];
+  const roles = [];
+  connection.query(
+    "SELECT CONCAT (first_name, ' ', last_name) as name, employee.id as id FROM employee",
+    (err, res) => {
+      if (err) throw err;
+      res.forEach((employee) => {
+        employees.push({ name: employee.name, value: employee.id });
+      });
+      connection.query(
+        "SELECT role.title as role, role.id as id FROM role",
+        (err, res) => {
+          if (err) throw err;
+          res.forEach((role) => {
+            roles.push({ name: role.role, value: role.id });
+          });
+          inquirer
+            .prompt([
+              {
+                type: "list",
+                message: "What Employee do you Want to Update?",
+                choices: employees,
+                name: "employee",
+              },
+              {
+                type: "list",
+                message: "What is the new Employees Role?",
+                name: "role",
+                choices: roles,
+              },
+            ])
+            .then((answers) => {
+              connection.query(
+                "UPDATE employee SET role_id = ? WHERE id = ?",
+                [answers.role, answers.employee],
+                (err, res) => {
+                  if (err) throw err;
+                  console.log("Employees role Updated");
+                }
+              );
+            });
+        }
+      );
+    }
+  );
+}
 // employee managers (optional)
+function UpdateEmployeeManager() {
+  const employees = [];
+  const managers = [];
+  connection.query(
+    "SELECT CONCAT (first_name, ' ', last_name) as name, employee.id as id FROM employee",
+    (err, res) => {
+      if (err) throw err;
+      res.forEach((employee) => {
+        employees.push({ name: employee.name, value: employee.id });
+      });
+      employees.push({ name: "Does Not Have A Manager", value: "Null" });
+      connection.query(
+        "SELECT CONCAT (first_name, ' ', last_name) as name, employee.id as id FROM employee WHERE is_Manager = true",
+        (err, res) => {
+          if (err) throw err;
+          res.forEach((employee) => {
+            managers.push({ name: employee.name, value: employee.id });
+          });
+          managers.push({ name: "Does Not Have A Manager", value: "Null" });
+          inquirer
+            .prompt([
+              {
+                type: "list",
+                message: "What Employee do you Want to Update?",
+                choices: employees,
+                name: "employee",
+              },
+              {
+                type: "list",
+                message: "Who is the Employees new Manager?",
+                name: "manager",
+                choices: managers,
+              },
+            ])
+            .then((answers) => {
+              connection.query(
+                "UPDATE employee SET manager_id = ? WHERE id = ?",
+                [answers.manager, answers.employee],
+                (err, res) => {
+                  if (err) throw err;
+                  console.log("Employees manager Updated");
+                }
+              );
+            });
+        }
+      );
+    }
+  );
+}
 // Delete
 // departments
 // roles
 // employees
+function removeEmployee() {
+  const employees = [];
+  connection.query(
+    "SELECT CONCAT (first_name, ' ', last_name) as name, employee.id as id FROM employee",
+    (err, res) => {
+      if (err) throw err;
+      res.forEach((employee) => {
+        employees.push({ name: employee.name, value: employee.id });
+      });
+      inquirer
+        .prompt([
+          {
+            type: "list",
+            message: "What Employee do you Want to Remove?",
+            choices: employees,
+            name: "employee",
+          },
+        ])
+        .then((answers) => {
+          connection.query(
+            `update employee set manager_id = null where manager_id = ?; DELETE FROM employee WHERE id = ?;`,
+            [answers.employee, answers.employee],
+            (err, res) => {
+              if (err) throw err;
+              console.log("Employees Removed");
+            }
+          );
+        });
+    }
+  );
+}
