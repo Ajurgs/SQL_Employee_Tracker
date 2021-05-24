@@ -58,20 +58,26 @@ function baseQuestions() {
         case "Remove Employee":
           removeEmployee();
           break;
-        case "Update Employee role":
+        case "Update Employee Role":
           UpdateEmployeeRole();
+          break;
+        case "Update Employee Manager":
+          UpdateEmployeeManager();
           break;
         case "Add Role":
           addRole();
           break;
         case "Remove Role":
+          removeRole();
           break;
         case "Add Department":
           addDepartment();
           break;
         case "Remove Department":
+          removeDepartment();
           break;
         case "Exit":
+          connection.end();
           break;
       }
     });
@@ -87,6 +93,7 @@ function addDepartment() {
       (err, res) => {
         if (err) throw err;
         console.log("department added");
+        baseQuestions();
       }
     );
   });
@@ -134,6 +141,7 @@ function addRole() {
             (err, res) => {
               if (err) throw err;
               console.log("role added");
+              baseQuestions();
             }
           );
         });
@@ -204,6 +212,7 @@ function addEmployee() {
                 (err, res) => {
                   if (err) throw err;
                   console.log("Employee added");
+                  baseQuestions();
                 }
               );
             });
@@ -220,6 +229,7 @@ function viewDepartments() {
     (err, res) => {
       if (err) throw err;
       console.table(res);
+      baseQuestions();
     }
   );
 }
@@ -230,6 +240,7 @@ function viewRoles() {
     (err, res) => {
       if (err) throw err;
       console.table(res);
+      baseQuestions();
     }
   );
 }
@@ -240,6 +251,7 @@ function viewEmployee() {
     (err, res) => {
       if (err) throw err;
       console.table(res);
+      baseQuestions();
     }
   );
 }
@@ -267,6 +279,7 @@ function viewEmployeeByManager() {
             (err, res) => {
               if (err) throw err;
               console.table(res);
+              baseQuestions();
             }
           );
         });
@@ -301,6 +314,7 @@ function viewDepartmentExpenses() {
               console.log(
                 `The Total Expenses of The  ${department} is $${res[0].Total}`
               );
+              baseQuestions();
             }
           );
         });
@@ -348,6 +362,7 @@ function UpdateEmployeeRole() {
                 (err, res) => {
                   if (err) throw err;
                   console.log("Employees role Updated");
+                  baseQuestions();
                 }
               );
             });
@@ -398,6 +413,7 @@ function UpdateEmployeeManager() {
                 (err, res) => {
                   if (err) throw err;
                   console.log("Employees manager Updated");
+                  baseQuestions();
                 }
               );
             });
@@ -408,7 +424,74 @@ function UpdateEmployeeManager() {
 }
 // Delete
 // departments
+function removeDepartment() {
+  const departments = [];
+  connection.query(
+    "SELECT department.name as name, department.id as id FROM department",
+    (err, res) => {
+      if (err) throw err;
+      res.forEach((department) => {
+        departments.push({ name: department.name, value: department.id });
+        inquirer
+          .prompt([
+            {
+              type: "list",
+              message: "What Department do you Want to Remove?",
+              choices: departments,
+              name: "department",
+            },
+          ])
+          .then((answers) => {
+            connection.query(
+              `update role set department_id = null where department_id = ?;
+              DELETE FROM department WHERE id = ?;`,
+              [answers.department, answers.department],
+              (err, res) => {
+                if (err) throw err;
+                console.log("departments Removed");
+                baseQuestions();
+              }
+            );
+          });
+      });
+    }
+  );
+}
 // roles
+function removeRole() {
+  const roles = [];
+  connection.query(
+    "SELECT role.name as name, role.id as id FROM role",
+    (err, res) => {
+      if (err) throw err;
+      res.forEach((role) => {
+        roles.push({ name: role.name, value: role.id });
+        inquirer
+          .prompt([
+            {
+              type: "list",
+              message: "What role do you Want to Remove?",
+              choices: roles,
+              name: "role",
+            },
+          ])
+          .then((answers) => {
+            connection.query(
+              `update employee set role_id = 1 where role_id = ?;
+              DELETE FROM role WHERE id = ?;`,
+              [answers.role, answers.role],
+              (err, res) => {
+                if (err) throw err;
+                console.log("roles Removed");
+                baseQuestions();
+              }
+            );
+          });
+      });
+    }
+  );
+}
+
 // employees
 function removeEmployee() {
   const employees = [];
@@ -434,7 +517,8 @@ function removeEmployee() {
             [answers.employee, answers.employee],
             (err, res) => {
               if (err) throw err;
-              console.log("Employees Removed");
+              console.log("Employee Removed");
+              baseQuestions();
             }
           );
         });
