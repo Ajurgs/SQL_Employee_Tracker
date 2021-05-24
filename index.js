@@ -36,7 +36,11 @@ function baseQuestions() {
         case "View Employees by Manager":
           viewEmployeeByManager();
           break;
+        case "View Roles":
+          viewRoles();
+          break;
         case "View Department Expenses":
+          viewDepartmentExpenses();
           break;
         case "Add Employee":
           break;
@@ -63,6 +67,15 @@ function baseQuestions() {
 // view-------------------
 // depatrments
 // roles
+function viewRoles() {
+  connection.query(
+    "SELECT role.title, role.salary, department.name AS department FROM role LEFT JOIN department on role.department_id = department.id;",
+    (err, res) => {
+      if (err) throw err;
+      console.table(res);
+    }
+  );
+}
 // employees
 function viewEmployee() {
   connection.query(
@@ -103,8 +116,41 @@ function viewEmployeeByManager() {
     }
   );
 }
-
+function viewEmployeeByDepartment() {}
 // budget of a department
+function viewDepartmentExpenses() {
+  const departments = [];
+  connection.query(
+    "SELECT department.name as department FROM department",
+    (err, res) => {
+      if (err) throw err;
+      res.forEach((department) => {
+        departments.push(department.department);
+      });
+      inquirer
+        .prompt({
+          type: "list",
+          message: "What Departments Budget would you like to view?",
+          name: "name",
+          choices: departments,
+        })
+        .then((res) => {
+          let department = res.name;
+          connection.query(
+            "SELECT SUM(role.salary) as Total FROM employee LEFT JOIN role ON employee.role_id = role.id LEFT JOIN  department ON role.department_id = department.id WHERE department.name = ?",
+            res.name,
+            (err, res) => {
+              if (err) throw err;
+              console.log(res);
+              console.log(
+                `The Total Expenses of The  ${department} is $${res[0].Total}`
+              );
+            }
+          );
+        });
+    }
+  );
+}
 // Update-------------
 // employee roles
 // employee managers (optional)
