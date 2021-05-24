@@ -3,6 +3,15 @@ require("console.table");
 const connection = require("./db/connection");
 const inquirer = require("inquirer");
 
+const addEmployeeQuestions = [{}];
+const addDepartmentQuestions = [
+  {
+    type: "input",
+    message: "What is the new Department Name?",
+    name: "name",
+  },
+];
+
 baseQuestions();
 
 // ask user for staring input
@@ -39,6 +48,9 @@ function baseQuestions() {
         case "View Roles":
           viewRoles();
           break;
+        case "View Departments":
+          viewDepartments();
+          break;
         case "View Department Expenses":
           viewDepartmentExpenses();
           break;
@@ -49,12 +61,16 @@ function baseQuestions() {
         case "Update Employee":
           break;
         case "Add Role":
+          addRole();
           break;
         case "Remove Role":
           break;
         case "Add Department":
+          addDepartment();
           break;
         case "Remove Department":
+          break;
+        case "Exit":
           break;
       }
     });
@@ -62,10 +78,92 @@ function baseQuestions() {
 
 // add-------------------
 // departments
+function addDepartment() {
+  inquirer.prompt(addDepartmentQuestions).then((answers) => {
+    connection.query(
+      "INSERT INTO department(name)",
+      [answers.name],
+      (err, res) => {
+        if (err) throw err;
+        console.log("department added");
+      }
+    );
+  });
+}
 // roles
+function addRole() {
+  const departments = [];
+  connection.query(
+    "SELECT department.name as department, department.id as id FROM department",
+    (err, res) => {
+      if (err) throw err;
+      res.forEach((department) => {
+        departments.push({ name: department.department, value: department.id });
+      });
+      inquirer
+        .prompt([
+          {
+            type: "input",
+            message: "What is the new Role Name?",
+            name: "name",
+          },
+          {
+            type: "input",
+            message: "What is the new Role Salary?",
+            name: "salary",
+            validate: function (input) {
+              if (isNaN(input)) {
+                return "Must Enter A Number";
+              } else {
+                return true;
+              }
+            },
+          },
+          {
+            type: "list",
+            message: "What is the new Role Department?",
+            name: "department",
+            choices: departments,
+          },
+        ])
+        .then((answers) => {
+          connection.query(
+            "INSERT INTO role(title,salary,department_id) VALUES (?,?,?)",
+            [answers.name, answers.salary, answers.department],
+            (err, res) => {
+              if (err) throw err;
+              console.log("role added");
+            }
+          );
+        });
+    }
+  );
+}
+
 // employees
+function addEmployee() {
+  inquirer.prompt(addDepartmentQuestions).then((answers) => {
+    connection.query(
+      "INSERT INTO department(name) VALUES (?)",
+      answers.name,
+      (err, res) => {
+        if (err) throw err;
+        console.log(res);
+      }
+    );
+  });
+}
 // view-------------------
 // depatrments
+function viewDepartments() {
+  connection.query(
+    "SELECT department.name as department FROM department",
+    (err, res) => {
+      if (err) throw err;
+      console.table(res);
+    }
+  );
+}
 // roles
 function viewRoles() {
   connection.query(
