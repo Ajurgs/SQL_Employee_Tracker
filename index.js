@@ -40,8 +40,6 @@ function baseQuestions() {
         case "View All Employees":
           viewEmployee();
           break;
-        case "View Employees by Department":
-          break;
         case "View Employees by Manager":
           viewEmployeeByManager();
           break;
@@ -55,6 +53,7 @@ function baseQuestions() {
           viewDepartmentExpenses();
           break;
         case "Add Employee":
+          addEmployee();
           break;
         case "Remove Employee":
           break;
@@ -142,16 +141,74 @@ function addRole() {
 
 // employees
 function addEmployee() {
-  inquirer.prompt(addDepartmentQuestions).then((answers) => {
-    connection.query(
-      "INSERT INTO department(name) VALUES (?)",
-      answers.name,
-      (err, res) => {
-        if (err) throw err;
-        console.log(res);
-      }
-    );
-  });
+  const managers = [];
+  const roles = [];
+  connection.query(
+    "SELECT CONCAT (first_name, ' ', last_name) as name, employee.id as id FROM employee WHERE is_manager = true;",
+    (err, res) => {
+      if (err) throw err;
+      res.forEach((manager) => {
+        managers.push({ name: manager.name, value: manager.id });
+      });
+      managers.push({ name: "Does Not Have A Manager", value: "Null" });
+      connection.query(
+        "SELECT role.title as role, role.id as id FROM role",
+        (err, res) => {
+          if (err) throw err;
+          res.forEach((role) => {
+            roles.push({ name: role.role, value: role.id });
+          });
+          inquirer
+            .prompt([
+              {
+                type: "input",
+                message: "What is the new Employees first Name?",
+                name: "first_name",
+              },
+              {
+                type: "input",
+                message: "What is the new Employees last Name?",
+                name: "last_name",
+              },
+              {
+                type: "list",
+                message: "What is the new Employees Role?",
+                name: "role",
+                choices: roles,
+              },
+              {
+                type: "list",
+                message: "Who is the new Employee's Manager?",
+                name: "manager",
+                choices: managers,
+              },
+              {
+                type: "list",
+                message: "Is the new Employee a Manager?",
+                name: "isManager",
+                choices: [true, false],
+              },
+            ])
+            .then((answers) => {
+              connection.query(
+                "INSERT INTO employee(first_name,last_name,role_id,manager_id,is_manager) VALUES (?,?,?,?,?)",
+                [
+                  answers.first_name,
+                  answers.last_name,
+                  answers.role,
+                  answers.manager,
+                  answers.isManager,
+                ],
+                (err, res) => {
+                  if (err) throw err;
+                  console.log("Employee added");
+                }
+              );
+            });
+        }
+      );
+    }
+  );
 }
 // view-------------------
 // depatrments
@@ -214,7 +271,6 @@ function viewEmployeeByManager() {
     }
   );
 }
-function viewEmployeeByDepartment() {}
 // budget of a department
 function viewDepartmentExpenses() {
   const departments = [];
