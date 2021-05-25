@@ -21,4 +21,4 @@ This is using inquirer, mysql, dotenv, and console.table
 
 ## Link
 
-[Link to Video]()
+[Link to Video](https://drive.google.com/file/d/1X1hDm1FP11_LxwB5OY_pJS4Hp1MapUbX/view?usp=sharing)
