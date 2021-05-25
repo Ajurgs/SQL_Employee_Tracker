@@ -11,8 +11,19 @@ const addDepartmentQuestions = [
     name: "name",
   },
 ];
-
+startBanner();
 baseQuestions();
+
+function startBanner() {
+  const banner = `
+_______________________________________________
+
+                  EMPLOYEE
+                  MANAGER
+_______________________________________________
+`;
+  console.log(banner);
+}
 
 // ask user for staring input
 function baseQuestions() {
@@ -23,17 +34,21 @@ function baseQuestions() {
       name: "choice",
       choices: [
         "View All Employees",
-        "View Employees by Department",
         "View Employees by Manager",
+        "View Roles",
+        "View Departments",
         "View Department Expenses",
         "Add Employee",
         "Remove Employee",
-        "Update Employee",
+        "Update Employee Role",
+        "Update Employee Manager",
         "Add Role",
         "Remove Role",
         "Add Department",
         "Remove Department",
+        "Exit",
       ],
+      loop: false,
     })
     .then((res) => {
       switch (res.choice) {
@@ -193,10 +208,9 @@ function addEmployee() {
                 choices: managers,
               },
               {
-                type: "list",
+                type: "confirm",
                 message: "Is the new Employee a Manager?",
                 name: "isManager",
-                choices: [true, false],
               },
             ])
             .then((answers) => {
@@ -310,7 +324,6 @@ function viewDepartmentExpenses() {
             res.name,
             (err, res) => {
               if (err) throw err;
-              console.log(res);
               console.log(
                 `The Total Expenses of The  ${department} is $${res[0].Total}`
               );
@@ -448,7 +461,7 @@ function removeDepartment() {
               [answers.department, answers.department],
               (err, res) => {
                 if (err) throw err;
-                console.log("departments Removed");
+                console.log("Department Removed");
                 baseQuestions();
               }
             );
@@ -482,7 +495,7 @@ function removeRole() {
               [answers.role, answers.role],
               (err, res) => {
                 if (err) throw err;
-                console.log("roles Removed");
+                console.log("Role Removed");
                 baseQuestions();
               }
             );
